@@ -87,6 +87,7 @@ psychoJS.start({
     {'name': 'stimulus_Color.csv', 'path': 'stimulus_Color.csv'},
     {'name': 'Images/mice.png', 'path': 'Images/mice.png'},
     {'name': 'Images/cat.png', 'path': 'Images/cat.png'},
+    {'name': 'Images/BG.png', 'path': 'Images/BG.png'},
     {'name': 'default.png', 'path': 'https://pavlovia.org/assets/default/default.png'},
   ]
 });
@@ -138,6 +139,7 @@ var FixationClock;
 var text_Fixation;
 var TutorialClock;
 var R;
+var Image_t;
 var text_Tutorial;
 var mouse_resp_t;
 var Feedback_Tutorial_2Clock;
@@ -147,6 +149,7 @@ var text_Instructions_2;
 var mouse_Instructions_2;
 var GoNoGoTaskClock;
 var L;
+var Image;
 var text_gonogo_ITI;
 var mouse_resp;
 var EndClock;
@@ -252,10 +255,23 @@ async function experimentInit() {
     ori : 0.0, 
     pos : [0, 0], 
     draggable: false,
-    size : [0.5, 0.5],
+    size : [5, 5],
     color : new util.Color([1,1,1]), opacity : undefined,
     flipHoriz : false, flipVert : false,
     texRes : 128.0, interpolate : true, depth : -1.0 
+  });
+  Image_t = new visual.ImageStim({
+    win : psychoJS.window,
+    name : 'Image_t', units : undefined, 
+    image : 'default.png', mask : undefined,
+    anchor : 'center',
+    ori : 0.0, 
+    pos : [0, 0], 
+    draggable: false,
+    size : [0.5, 0.5],
+    color : new util.Color([1,1,1]), opacity : undefined,
+    flipHoriz : false, flipVert : false,
+    texRes : 128.0, interpolate : true, depth : -2.0 
   });
   text_Tutorial = new visual.TextStim({
     win: psychoJS.window,
@@ -266,7 +282,7 @@ async function experimentInit() {
     pos: [0, 0], draggable: false, height: 0.05,  wrapWidth: undefined, ori: 0.0,
     languageStyle: 'LTR',
     color: new util.Color('white'),  opacity: undefined,
-    depth: -2.0 
+    depth: -3.0 
   });
   
   mouse_resp_t = new core.Mouse({
@@ -315,10 +331,23 @@ async function experimentInit() {
     ori : 0.0, 
     pos : [0, 0], 
     draggable: false,
-    size : [0.5, 0.5],
+    size : [5, 5],
     color : new util.Color([1,1,1]), opacity : undefined,
     flipHoriz : false, flipVert : false,
     texRes : 128.0, interpolate : true, depth : -1.0 
+  });
+  Image = new visual.ImageStim({
+    win : psychoJS.window,
+    name : 'Image', units : undefined, 
+    image : 'default.png', mask : undefined,
+    anchor : 'center',
+    ori : 0.0, 
+    pos : [0, 0], 
+    draggable: false,
+    size : [0.5, 0.5],
+    color : new util.Color([1,1,1]), opacity : undefined,
+    flipHoriz : false, flipVert : false,
+    texRes : 128.0, interpolate : true, depth : -2.0 
   });
   text_gonogo_ITI = new visual.TextStim({
     win: psychoJS.window,
@@ -329,7 +358,7 @@ async function experimentInit() {
     pos: [0, 0], draggable: false, height: 0.05,  wrapWidth: undefined, ori: 0.0,
     languageStyle: 'LTR',
     color: new util.Color('white'),  opacity: undefined,
-    depth: -2.0 
+    depth: -3.0 
   });
   
   mouse_resp = new core.Mouse({
@@ -990,7 +1019,8 @@ function TutorialRoutineBegin(snapshot) {
     duration = Math.floor(Math.random() * 3) + 1;
     
     duration2 = duration+1.5;
-    R.setImage(photo);
+    R.setImage('Images/BG.png');
+    Image_t.setImage(photo);
     // setup some python lists for storing info about the mouse_resp_t
     // current position of the mouse:
     mouse_resp_t.x = [];
@@ -1006,6 +1036,7 @@ function TutorialRoutineBegin(snapshot) {
     // keep track of which components have finished
     TutorialComponents = [];
     TutorialComponents.push(R);
+    TutorialComponents.push(Image_t);
     TutorialComponents.push(text_Tutorial);
     TutorialComponents.push(mouse_resp_t);
     
@@ -1039,6 +1070,21 @@ function TutorialRoutineEachFrame() {
     frameRemains = 0.0 + duration - psychoJS.window.monitorFramePeriod * 0.75;// most of one frame period left
     if (R.status === PsychoJS.Status.STARTED && t >= frameRemains) {
       R.setAutoDraw(false);
+    }
+    
+    
+    // *Image_t* updates
+    if (t >= 0.0 && Image_t.status === PsychoJS.Status.NOT_STARTED) {
+      // keep track of start time/frame for later
+      Image_t.tStart = t;  // (not accounting for frame time here)
+      Image_t.frameNStart = frameN;  // exact frame index
+      
+      Image_t.setAutoDraw(true);
+    }
+    
+    frameRemains = 0.0 + duration - psychoJS.window.monitorFramePeriod * 0.75;// most of one frame period left
+    if (Image_t.status === PsychoJS.Status.STARTED && t >= frameRemains) {
+      Image_t.setAutoDraw(false);
     }
     
     
@@ -1145,10 +1191,19 @@ function TutorialRoutineEnd(snapshot) {
     } else {
         correct = 0;
     }
+    mouse_resp_t.time = mouse_resp_t.time[0];
+    psychoJS.experiment.addData("mouse_resp_t.time", mouse_resp_t.time);
+    
+    mouse_resp_t.clicked_name = mouse_resp_t.clicked_name[0];
+    psychoJS.experiment.addData("mouse_resp_t.clicked_name", mouse_resp_t.clicked_name);
+    
     psychoJS.experiment.addData("correct_answer", correct);
     
     time = duration2;
     psychoJS.experiment.addData('time', time);
+    
+    
+    
     // store data for psychoJS.experiment (ExperimentHandler)
     psychoJS.experiment.addData('mouse_resp_t.x', mouse_resp_t.x);
     psychoJS.experiment.addData('mouse_resp_t.y', mouse_resp_t.y);
@@ -1418,7 +1473,8 @@ function GoNoGoTaskRoutineBegin(snapshot) {
     duration = Math.floor(Math.random() * 3) + 1;
     
     duration2 = duration+1.5;
-    L.setImage(photo);
+    L.setImage('Images/BG.png');
+    Image.setImage(photo);
     // setup some python lists for storing info about the mouse_resp
     // current position of the mouse:
     mouse_resp.x = [];
@@ -1434,6 +1490,7 @@ function GoNoGoTaskRoutineBegin(snapshot) {
     // keep track of which components have finished
     GoNoGoTaskComponents = [];
     GoNoGoTaskComponents.push(L);
+    GoNoGoTaskComponents.push(Image);
     GoNoGoTaskComponents.push(text_gonogo_ITI);
     GoNoGoTaskComponents.push(mouse_resp);
     
@@ -1466,6 +1523,21 @@ function GoNoGoTaskRoutineEachFrame() {
     frameRemains = 0.0 + duration - psychoJS.window.monitorFramePeriod * 0.75;// most of one frame period left
     if (L.status === PsychoJS.Status.STARTED && t >= frameRemains) {
       L.setAutoDraw(false);
+    }
+    
+    
+    // *Image* updates
+    if (t >= 0.0 && Image.status === PsychoJS.Status.NOT_STARTED) {
+      // keep track of start time/frame for later
+      Image.tStart = t;  // (not accounting for frame time here)
+      Image.frameNStart = frameN;  // exact frame index
+      
+      Image.setAutoDraw(true);
+    }
+    
+    frameRemains = 0.0 + duration - psychoJS.window.monitorFramePeriod * 0.75;// most of one frame period left
+    if (Image.status === PsychoJS.Status.STARTED && t >= frameRemains) {
+      Image.setAutoDraw(false);
     }
     
     
@@ -1570,6 +1642,12 @@ function GoNoGoTaskRoutineEnd(snapshot) {
     } else {
         correct = 0;
     }
+    mouse_resp.time = mouse_resp.time[0];
+    psychoJS.experiment.addData("mouse_resp.time", mouse_resp.time);
+    
+    mouse_resp.clicked_name = mouse_resp.clicked_name[0]
+    psychoJS.experiment.addData("mouse_resp.clicked_name", mouse_resp.clicked_name);
+    
     psychoJS.experiment.addData("correct_answer", correct);
     
     time = duration2;
